@@ -1,0 +1,16 @@
+cover:
+
+  - platform: mqtt
+    command_topic: "home/hall/cover/Roller_NG_1/set"
+    name: "hall_roller_1"
+    position_topic: "home/hall/cover/Roller_NG_1/state"
+    value_template: '{{ value_json.position }}'
+    payload_open: 100
+    payload_close: 0
+    payload_stop: "STOP"
+    set_position_topic: "home/hall/cover/Roller_NG_1/set"
+    position_open: 100
+    position_closed: 0
+    retain: "true"
+
+    
