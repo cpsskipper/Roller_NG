@@ -5,7 +5,7 @@
 #include <Ticker.h>   // ESP8266 Timer
 #include <EEPROM.h>
 
-
+#include "secret.h" // Для заполнения настроек подключения к WI-FI и MQTT. При заполнении настроек в config.h нужно закомментировать эту строчку
 #include "config.h"
 
 //----------------------------------------------------------MQTT
@@ -17,49 +17,23 @@ volatile boolean mqtt_state = false;
 //---------------------------------------------------------Motor
 volatile int motor_position_abs = 0;
 volatile int target_position_abs = 0;
-volatile boolean position_flag = false;
 volatile boolean rotate_flag = false;
 
+//режим настройки шторы
+boolean setup_roller = false;
+boolean setup_roller_zero = false;
 
-/*
-
-int motor_position_target = 0;
-byte rotate = 0;   // 0 не вращается, 1 - закрытие (от 100% к 0%), 2 - открытие (от 0 к 100%)
-volatile int rotate_target = 0;
-volatile boolean rotate_flag = false;
-
-//---------------------------------------------------------Motor timer
-//таймер общего времени работы мотора
-Ticker motor_timer;
-boolean motor_work = false;
-volatile boolean motor_need_stop =false;
-
-//таймер текущей позиции шторы
-Ticker roller_position_timer;
-
-
-volatile int rotate_count = 0;
-*/
 //---------------------------------------------------------EEPROM
 // адреса в постоянной памяти
-int adr_init_eeprom = 500;
-int addres_position = 5;
+#define adr_init_eeprom  500
+#define addres_position  5
+#define address_steps    50
 
 //---------------------------------------------------------DEBUG
 boolean debug = true;
 
 //------------------------------------------------------------------------------------------INTERRUPT FUNCTIONS 
-/*
-//Событие срабатывает, когда двигатель вращается заданное количество времени
-void ICACHE_RAM_ATTR motor_timer_interrupt(){
- // motor_need_stop = true;
-}
-*/
 
-//Событие срабатывает, для отправки текущей позиции во время движения шторы
-void ICACHE_RAM_ATTR roller_position_timer_interrupt(){
-  position_flag = true; 
-}
 
 
 //Событие срабатывает каждые 60 секунд для отправки статуса шторы на сервер
@@ -99,6 +73,8 @@ void setup() {
   int i = motor_position_abs;
   mqtt_init();
   if (debug) mqtt_send_debug("Position abs load: "+String(i));
+  if (debug) mqtt_send_debug("STEPS at load: "+String(COUNT_STEPS));
+   
 }
 
 
@@ -123,43 +99,16 @@ void loop() {
 //----------------------------------- считывание очереди MQTT
 client.loop();
 
-/*
-//----------------------------------- Остановка двигателя
-if (motor_need_stop == true){
-  motor_need_stop = false;
-motor_stop();
-motor_position = motor_position_target;
-mqtt_send_state();
-
-//Save EEPROM
-      EEPROM.write(addres_position, motor_position);
-      EEPROM.commit();
-}
-*/
-
 //----------------------------------- Остановка двигателя по Холлу
 if (rotate_flag == true){
   rotate_flag = false;
   motor_stop();
-  //motor_position = motor_position_target;
   mqtt_send_state();
-
-  //Save EEPROM
-      EEPROM.write(addres_position, position_to_percent(motor_position_abs));
-      EEPROM.commit();
-  mqtt_send_debug("Position: "+String(motor_position_abs));
+  if (debug) mqtt_send_debug("Position: "+String(motor_position_abs));
   }
 
 
 //------------------------------------ Расчет и отправка текущей позиции
-if (position_flag == true){
-  position_flag = false;
-  
-  //send status mqtt
-  mqtt_send_state();
-}
-
-
 
 if (mqtt_state == true){
   mqtt_state = false; 

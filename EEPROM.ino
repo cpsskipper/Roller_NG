@@ -15,7 +15,8 @@ if (EEPROM.read(adr_init_eeprom)!=1)
 
 //Загрузка текущих показаний
 //motor_position_abs = 18450;
-motor_position_abs = (steps_count * EEPROM.read(addres_position) /100);
+COUNT_STEPS = EEPROMReadInt(address_steps);
+motor_position_abs = (COUNT_STEPS * EEPROM.read(addres_position) /100);
 }
 
 
@@ -35,39 +36,23 @@ float EEPROM_float_read(int addr) // чтение из ЕЕПРОМ
 }
 
 
-void EEPROM_int_write(int addr, int val) // запись в ЕЕПРОМ FLOAT 4 bite
-{  
-  byte *x = (byte *)&val;
-  for(byte i = 0; i < 1; i++) EEPROM.write(i+addr, x[i]);
-  EEPROM.commit();
+void EEPROMWriteInt(int address, int value)
+{
+  byte two = (value & 0xFF);
+  byte one = ((value >> 8) & 0xFF);
+  
+  EEPROM.write(address, two);
+  EEPROM.write(address + 1, one);
+}
+ 
+int EEPROMReadInt(int address)
+{
+  long two = EEPROM.read(address);
+  long one = EEPROM.read(address + 1);
+ 
+  return ((two << 0) & 0xFFFFFF) + ((one << 8) & 0xFFFFFFFF);
 }
 
-int EEPROM_int_read(int addr) // чтение из ЕЕПРОМ
-{    
-  byte x[1];
-  for(byte i = 0; i < 1; i++) x[i] = EEPROM.read(i+addr);
-  int *y = (int *)&x;
-  return y[0];
-}
-
-
-/*
-
- // чтение
-int EEPROM_int_read(int addr) {    
-  byte raw[2];
-  for(byte i = 0; i < 2; i++) raw[i] = EEPROM.read(addr+i);
-  int &num = (int&)raw;
-  return num;
-}
-
-// запись
-void EEPROM_int_write(int addr, int num) {
-  byte raw[2];
-  (int&)raw = num;
-  for(byte i = 0; i < 2; i++) EEPROM.write(addr+i, raw[i]);
-}
- */
 
 void EEPROM_string_write (int addr, int addr_length, String s)
 {

@@ -1,9 +1,9 @@
 
 void init_wifi(){
   WiFi.disconnect();
-  WiFi.hostname(client_id);
+  WiFi.hostname(CLIENT_ID);
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);

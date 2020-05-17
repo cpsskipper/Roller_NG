@@ -1,5 +1,5 @@
 void ota_init(){
- ArduinoOTA.setHostname(client_id);
+ ArduinoOTA.setHostname(CLIENT_ID);
   ArduinoOTA.onStart([]() {
     String type;
     if (ArduinoOTA.getCommand() == U_FLASH)
